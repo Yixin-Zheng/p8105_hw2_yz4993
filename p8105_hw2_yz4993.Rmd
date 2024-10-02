@@ -79,3 +79,21 @@ trans_ent |>
 ```
 
 # Problem 2
+
+```{r 2.1 data import and cleaning}
+trash_wheel = 
+  read_excel(
+    "data/202409 Trash Wheel Collection Data.xlsx",
+    sheet = "Mr. Trash Wheel",      # specify the correct sheet
+    skip = 1,                       # skip first rows (image)
+    .name_repair = "minimal"        # suppress new names message
+  ) |> 
+  janitor::clean_names() |>          # clean column names to snake_case
+  select(1:14) |>     # select only the first 14 columns (bc only 14 variables)
+  filter(!is.na(dumpster)) |>        # omit rows without dumpster-specific data
+  mutate(
+    sports_balls = as.integer(round(sports_balls)))  # Round & change to integer
+
+```
+
+# Problem 3
