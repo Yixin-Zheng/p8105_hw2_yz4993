@@ -285,7 +285,7 @@ final_data <- final_data %>%
   )
 
 # sorting by 'series' and 'episode'
-final_datas <- final_data %>%
+final_data <- final_data %>%
   arrange(series, episode)
 
 # display the final dataset
@@ -294,3 +294,10 @@ print(final_data)
 # save the final dataset to a CSV file
 write_csv(final_data, "data/gbb_datasets/final_bake_data.csv")
 ```
+
+The final dataset contains `r nrow(final_data)` observations and `r ncol(final_data)` variables, which include the following: `r paste(names(final_data), collapse = ", ")`.
+During the data cleaning process, the baker name discrepancies, such as "Joanne" being converted to "Jo", were corrected to ensure consistency across datasets. Additionally, `bakes.csv` had 21 bakers not present in `bakers.csv` or `results.csv`, especially because of missing values in columns like `signature_bake`, which likely indicate that these bakers participated but the data was not recorded.
+Notably, the variables such as `r colnames(final_data)[6]` for the series, `r colnames(final_data)[7]` for the episode, and the technical performance details, including `r colnames(final_data)[10]` for the technical score and `r colnames(final_data)[11]` for the result, are important for evaluating the bakers' performance throughout this competition. 
+This cleaned and merged dataset can now be used for further analysis.
+
+```{r 3.4 create table}
