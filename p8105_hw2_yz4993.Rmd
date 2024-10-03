@@ -181,10 +181,11 @@ bakers =
 
 bakes = 
   read_csv(
-    "data/gbb_datasets/bakes.csv",    # specify the correct path
+    "data/gbb_datasets/bakes.csv"     # specify the correct path
   ) |> 
   janitor::clean_names() |>            # clean column names to snake_case
-  filter(!is.na(baker))                # filter "baker" column to omit NA
+  mutate(
+    baker = gsub('^"|"$', '', baker))  # remove extra quotes from baker names
 
 results = 
   read_csv(
@@ -207,12 +208,16 @@ colnames(results)
 
 # check for bakers in bakes.csv that do not exist in bakers.csv based on first name
 anti_join(bakes, bakers, by = c("baker" = "first_name"))
-
+# check for bakers in bakers.csv that do not exist in bakes.csv based on first name
+anti_join(bakers, bakes, by = c("first_name" = "baker"))
 # check for bakers in bakes.csv that do not exist in results.csv
 anti_join(bakes, results, by = c("baker" = "baker"))
-
+# check for bakers in results.csv that do not exist in bakes.csv
+anti_join(results, bakes, by = c("baker" = "baker"))
 # check for bakers in bakers.csv that do not exist in results.csv based on first name
 anti_join(bakers, results, by = c("first_name" = "baker"))
+# check for bakers in results.csv that do not exist in bakers.csv based on first name
+anti_join(results, bakers, by = c("baker" = "first_name"))
 
 ```
 
