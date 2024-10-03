@@ -179,6 +179,7 @@ bakers =
     sep = " ", 
     extra = "merge")                  # split first and last names
 
+
 bakes = 
   read_csv(
     "data/gbb_datasets/bakes.csv"     # specify the correct path
@@ -202,6 +203,7 @@ sum(is.na(bakers))
 sum(is.na(bakes))
 sum(is.na(results))
 
+#review column names
 colnames(bakers)
 colnames(bakes)
 colnames(results)
