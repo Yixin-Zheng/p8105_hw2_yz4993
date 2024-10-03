@@ -203,6 +203,11 @@ results =
 
 
 ```{r 3.2 completeness and correctness}
+# checking for missing values
+sum(is.na(bakers))
+sum(is.na(bakes))
+sum(is.na(results))
+
 #review column names
 colnames(bakers)
 colnames(bakes)
@@ -257,4 +262,14 @@ if (all(combined_brbe$first_name %in% combined_rbe$baker) &&
   print("Some names differ.")
 }
 ```
+Firstly, I imported the datasets and cleaned the column names using a similar approach as in previous problems: specifying the correct path, cleaning the column names to `snake_case`, and filtering out any null values in the key identifier columns (`baker_name`/`baker`). Additionally, I skipped the first two rows in `results.csv` since these rows contain notes, not data. During the next step, when using the `anti_join` function, I noticed that each `anti_join` returned non-empty tibbles. After closely examining the datasets one by one, we found that the baker "Jo" in both `bakers.csv` and `bakes.csv` was the same person as "Joanne" in `results.csv`. To ensure consistency, I updated the data cleaning process to convert "Jo" to "Joanne" in both the `bakers` and `bakes` datasets.
 
+Afterward, only the tibbles generated from lines 219 and 223 remained non-empty. Upon further inspection, it became clear that these tibbles contained replicated entries. To handle this, I identified and processed the replicated entries in both the `bakers` vs. `bakes` and `results` vs. `bakes` datasets. I first checked for replicated `first_name` values in `bakers` and replicated `baker` names in `results`. Then, I combined the duplicated entries and compared the names from both datasets. The result showed that all names matched, indicating that the 21 bakers, although present in both `bakers.csv` and `results.csv`, lacked data on their Signature Bakes. Since these bakers still participated in the competition, we chose not to omit them.
+
+Regarding data correctness, it is likely that the data entry was done with minimal caution, necessitating a significant amount of cleaning before further analysis to avoid bias. As for data completeness, the `sum(is.na())` function helped identify missing values: `bakers.csv` had no missing values, suggesting good completeness; `bakes.csv` had only 2 missing values, which is acceptable; whereas `results.csv` had a considerable number of missing values (866), raising concerns about its completeness.
+
+We will now proceed to merge the datasets into a single, final dataset and organize it by merge datasets on common keys, and rearranging variables. As we mentioned previously, since some bakers are missing bake-related information but are present in the competition (as seen with the replicated entries), I would keep these rows for completeness. However, we should flag missing data or fill them with appropriate NA values to avoid skewing analysis in future if needed.
+
+```{r 3.3 merge and organize}
+
+```
