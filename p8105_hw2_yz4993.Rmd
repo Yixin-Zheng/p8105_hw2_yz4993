@@ -314,4 +314,26 @@ kable(star_baker, caption = "Star Baker and Winner of Each Episode (Seasons 5-10
 
 This table shows the "Star Baker" for each episode and "Winner" for each seasons from seasons 5-10, highlighting the unpredictability of the final outcomes. For instance, Richard Burr (Season 5) won "Star Baker" five times but did not win the season. Nadiya Hussain in Season 6, who had the most "Star Baker" wins, did go on to win her season. Meanwhile, Sophie Faldo in Season 8 only won "Star Baker" twice but still emerged as the overall winner.
 
+```{r 3.5 viewers data}
+# import, clean, tidy, and organize the viewership data in viewers.csv. 
+viewers <- read_csv("data/gbb_datasets/viewers.csv") |>  # specify the correct path
+  janitor::clean_names() |>                              # clean column names to snake_case
+  pivot_longer(cols = starts_with("series"),             # pivot the data from wide to long format
+               names_to = "series", 
+               names_prefix = "series_",
+               values_to = "viewership") 
 
+# show the first 10 rows of this dataset. 
+print(viewers, n = 10)
+
+# what was the average viewership in Season 1? In Season 5?
+avg_viewership <- viewers |> 
+  filter(series %in% c(1, 5)) |> 
+  group_by(series) |> 
+  summarise(avg_viewership = mean(viewership, 
+                                  na.rm = TRUE))
+
+avg_viewership
+
+```
+The average viewship of Season 1 is 2.7700 and that of Season 5 is 10.0393.
