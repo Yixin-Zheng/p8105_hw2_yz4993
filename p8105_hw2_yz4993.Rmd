@@ -9,6 +9,8 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
+library(dplyr)
+library(knitr)
 ```
 
 # Problem 1
@@ -28,7 +30,7 @@ trans_ent =
   mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
 ```
 
-As it stands, these data are not "tidy": route number should be a variable, as should route. That is, to obtain a tidy dataset we would need to convert `route` variables from wide to long format. This will be useful when focusing on specific routes, but may not be necessary when considering questions that focus on station-level variables. 
+As it stands, these data are not "tidy": route number should be a variable, as should route. That is, to obtain a tidy dataset we would need to convert `route` variables from wide to long format. This will be useful when focusing on specific routes, but may not be necessary when considering questions that focus on station-level variables.
 
 The following code chunk selects station name and line, and then uses `distinct()` to obtain all unique combinations. As a result, the number of rows in this dataset is the number of unique stations. .
 
@@ -38,7 +40,7 @@ trans_ent |>
   distinct()
 ```
 
-The next code chunk is similar, but filters according to ADA compliance as an initial step. This produces a dataframe in which the number of rows is the number of ADA compliant stations. 
+The next code chunk is similar, but filters according to ADA compliance as an initial step. This produces a dataframe in which the number of rows is the number of ADA compliant stations.
 
 ```{r 1.3 ada compliant station number}
 trans_ent |> 
@@ -137,6 +139,7 @@ gwyn_trash_wheel =
 trash_wheel = bind_rows(mr_trash_wheel, prof_trash_wheel, gwyn_trash_wheel)
 names(trash_wheel)
 ```
+
 The combined trash_wheel dataset contains a total of `r nrow(trash_wheel)` observations and `r ncol(trash_wheel)` variables, which are: `r paste(names(trash_wheel), collapse = ", ")`.
 
 During data cleaning, for the `mr_trash_wheel` data sheet, we converted the variable type of `r colnames(trash_wheel)[3]` from character to numeric to ensure the dataset could be combined. Additionally, the `r colnames(trash_wheel)[13]` variable was rounded and converted to an integer as per the instructions.
@@ -164,8 +167,8 @@ gwyn_2022_6_cigarette_butts
 
 As the code result shown, the total weight of trash collected by Professor Trash Wheel is 246.74 tons, and the total number of cigarette butts collected by Gwynnda in June of 2022 is 18120.
 
-
 # Problem 3
+
 ```{r 3.1 data import and cleaning and wrangling}
 bakers = 
   read_csv(
@@ -200,7 +203,6 @@ results =
   janitor::clean_names() |>             # clean column names to snake_case
   filter(!is.na(baker))                 # filter rows "baker" column to omit NA
 ```
-
 
 ```{r 3.2 completeness and correctness}
 # checking for missing values
@@ -262,6 +264,7 @@ if (all(combined_brbe$first_name %in% combined_rbe$baker) &&
   print("Some names differ.")
 }
 ```
+
 Firstly, I imported the datasets and cleaned the column names using a similar approach as in previous problems: specifying the correct path, cleaning the column names to `snake_case`, and filtering out any null values in the key identifier columns (`baker_name`/`baker`). Additionally, I skipped the first two rows in `results.csv` since these rows contain notes, not data. During the next step, when using the `anti_join` function, I noticed that each `anti_join` returned non-empty tibbles. After closely examining the datasets one by one, we found that the baker "Jo" in both `bakers.csv` and `bakes.csv` was the same person as "Joanne" in `results.csv`. To ensure consistency, I updated the data cleaning process to convert "Jo" to "Joanne" in both the `bakers` and `bakes` datasets.
 
 Afterward, only the tibbles generated from lines 219 and 223 remained non-empty. Upon further inspection, it became clear that these tibbles contained replicated entries. To handle this, I identified and processed the replicated entries in both the `bakers` vs. `bakes` and `results` vs. `bakes` datasets. I first checked for replicated `first_name` values in `bakers` and replicated `baker` names in `results`. Then, I combined the duplicated entries and compared the names from both datasets. The result showed that all names matched, indicating that the 21 bakers, although present in both `bakers.csv` and `results.csv`, lacked data on their Signature Bakes. Since these bakers still participated in the competition, we chose not to omit them.
@@ -295,9 +298,20 @@ print(final_data)
 write_csv(final_data, "data/gbb_datasets/final_bake_data.csv")
 ```
 
-The final dataset contains `r nrow(final_data)` observations and `r ncol(final_data)` variables, which include the following: `r paste(names(final_data), collapse = ", ")`.
-During the data cleaning process, the baker name discrepancies, such as "Joanne" being converted to "Jo", were corrected to ensure consistency across datasets. Additionally, `bakes.csv` had 21 bakers not present in `bakers.csv` or `results.csv`, especially because of missing values in columns like `signature_bake`, which likely indicate that these bakers participated but the data was not recorded.
-Notably, the variables such as `r colnames(final_data)[6]` for the series, `r colnames(final_data)[7]` for the episode, and the technical performance details, including `r colnames(final_data)[10]` for the technical score and `r colnames(final_data)[11]` for the result, are important for evaluating the bakers' performance throughout this competition. 
-This cleaned and merged dataset can now be used for further analysis.
+The final dataset contains `r nrow(final_data)` observations and `r ncol(final_data)` variables, which include the following: `r paste(names(final_data), collapse = ", ")`. During the data cleaning process, the baker name discrepancies, such as "Joanne" being converted to "Jo", were corrected to ensure consistency across datasets. Additionally, `bakes.csv` had 21 bakers not present in `bakers.csv` or `results.csv`, especially because of missing values in columns like `signature_bake`, which likely indicate that these bakers participated but the data was not recorded. Notably, the variables such as `r colnames(final_data)[6]` for the series, `r colnames(final_data)[7]` for the episode, and the technical performance details, including `r colnames(final_data)[10]` for the technical score and `r colnames(final_data)[11]` for the result, are important for evaluating the bakers' performance throughout this competition. This cleaned and merged dataset can now be used for further analysis.
 
 ```{r 3.4 create table}
+star_baker <- final_data %>%
+  filter(
+    result %in% c("STAR BAKER", "WINNER"), 
+    series >= 5 & series <= 10) %>%
+  select(series, episode, first_name, last_name, result) %>%
+  arrange(series, episode)
+
+# Create a reader-friendly table
+kable(star_baker, caption = "Star Baker and Winner of Each Episode (Seasons 5-10)")
+```
+
+This table shows the "Star Baker" for each episode and "Winner" for each seasons from seasons 5-10, highlighting the unpredictability of the final outcomes. For instance, Richard Burr (Season 5) won "Star Baker" five times but did not win the season. Nadiya Hussain in Season 6, who had the most "Star Baker" wins, did go on to win her season. Meanwhile, Sophie Faldo in Season 8 only won "Star Baker" twice but still emerged as the overall winner.
+
+
