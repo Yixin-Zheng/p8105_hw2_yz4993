@@ -177,8 +177,11 @@ bakers =
     baker_name, 
     into = c("first_name", "last_name"), 
     sep = " ", 
-    extra = "merge")                  # split first and last names
-
+    extra = "merge"                   # split first and last names
+  ) |> 
+  mutate(
+    first_name = ifelse(first_name == "Jo", "Joanne", first_name) # convert Jo to Joanne
+  )
 
 bakes = 
   read_csv(
@@ -186,7 +189,9 @@ bakes =
   ) |> 
   janitor::clean_names() |>            # clean column names to snake_case
   mutate(
-    baker = gsub('^"|"$', '', baker))  # remove extra quotes from baker names
+    baker = gsub('^"|"$', '', baker),   # remove extra quotes from baker names
+    baker = ifelse(baker == "Jo", "Joanne", baker)  # convert Jo to Joanne
+  )
 
 results = 
   read_csv(
