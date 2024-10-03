@@ -80,20 +80,89 @@ trans_ent |>
 
 # Problem 2
 
-```{r 2.1 data import and cleaning}
-trash_wheel = 
+```{r 2.1 data import and cleaning/ mr. trash wheel}
+mr_trash_wheel = 
   read_excel(
     "data/202409 Trash Wheel Collection Data.xlsx",
     sheet = "Mr. Trash Wheel",      # specify the correct sheet
     skip = 1,                       # skip first rows (image)
     .name_repair = "minimal"        # suppress new names message
   ) |> 
-  janitor::clean_names() |>          # clean column names to snake_case
-  select(1:14) |>     # select only the first 14 columns (bc only 14 variables)
-  filter(!is.na(dumpster)) |>        # omit rows without dumpster-specific data
+  janitor::clean_names() |>         # clean column names to snake_case
+  select(1:14) |>                   # select only the first 14 columns
+  filter(!is.na(dumpster)) |>       # omit rows without dumpster-specific data
   mutate(
-    sports_balls = as.integer(round(sports_balls)))  # Round & change to integer
-
+    year = as.double(year),                          # change variable type to num
+    sports_balls = as.integer(round(sports_balls)),  # round and change to integer
+    wheel_name = "mr.trash wheel"                    # add a variable for wheel
+  )
 ```
+
+```{r 2.2 data import and cleaning/ prof trash wheel}
+prof_trash_wheel = 
+  read_excel(
+    "data/202409 Trash Wheel Collection Data.xlsx",
+    sheet = "Professor Trash Wheel",     # specify the correct sheet
+    skip = 1,                       # skip first rows (image)
+    .name_repair = "minimal"        # suppress new names message
+  ) |> 
+  janitor::clean_names() |>         # clean column names to snake_case
+  select(1:13) |>                   # select only the first 13 columns
+  filter(!is.na(dumpster)) |>       # omit rows without dumpster-specific data
+  mutate(
+    sports_balls = NA_integer_,     # add missing sports_balls column (integer)
+    wheel_name = "professor trash wheel"             # add a variable for wheel
+  )
+```
+
+```{r 2.3 data import and cleaning/ gwynnda trash wheel}
+gwyn_trash_wheel = 
+  read_excel(
+    "data/202409 Trash Wheel Collection Data.xlsx",
+    sheet = "Gwynnda Trash Wheel",     # specify the correct sheet
+    skip = 1,                       # skip first rows (image)
+    .name_repair = "minimal"        # suppress new names message
+  ) |> 
+  janitor::clean_names() |>         # clean column names to snake_case
+  select(1:12) |>                   # select only the first 12 columns
+  filter(!is.na(dumpster)) |>       # omit rows without dumpster-specific data
+  mutate(
+    sports_balls = NA_integer_,    # add missing sports_balls column (integer)
+    glass_bottles = NA_real_,        # add missing glass_bottles column (number)
+    wheel_name = "gwynnda trash wheel"               # add a variable for wheel
+  )
+```
+
+```{r 2.4 combine datasets}
+trash_wheel = bind_rows(mr_trash_wheel, prof_trash_wheel, gwyn_trash_wheel)
+names(trash_wheel)
+```
+The combined trash_wheel dataset contains a total of `r nrow(trash_wheel)` observations and `r ncol(trash_wheel)` variables, which are: `r paste(names(trash_wheel), collapse = ", ")`.
+
+During data cleaning, for the `mr_trash_wheel` data sheet, we converted the variable type of `r colnames(trash_wheel)[3]` from character to numeric to ensure the dataset could be combined. Additionally, the `r colnames(trash_wheel)[13]` variable was rounded and converted to an integer as per the instructions.
+
+Both the `prof_trash_wheel` and `gwyn_trash_wheel` datasets were missing the `r colnames(trash_wheel)[13]` column, and the `gwyn_trash_wheel` dataset was also missing the `r colnames(trash_wheel)[10]` column. To maintain consistency in the format of the dataset, these missing columns were added with NA values, enabling the use of the `bind_rows()` function for combining the datasets.
+
+We also added a new variable, `wheel_name`, to each dataset to identify the specific trash wheel. Key variables include `r colnames(trash_wheel)[5]`, which indicates the weight of trash collected (in tons), and `r colnames(trash_wheel)[6]`, which measures the volume of trash collected (in cubic yards) for each corresponding dumpster. The variables `r paste(colnames(trash_wheel)[7:13], collapse = ", ")` represent different types of trash collected, such as plastic bottles and cigarette butts. Finally, the variable `r colnames(trash_wheel)[14]` denotes the number of homes powered by the electricity generated from the collected trash, where each ton of trash equates to an average of 500 kilowatts of electricity, and an average household uses approximately 30 kilowatts per day.
+
+```{r 2.5 calculate}
+# total weight of trash collected by Professor Trash Wheel
+prof_total_weight <- trash_wheel %>%
+  filter(wheel_name == "professor trash wheel") %>%
+  pull(weight_tons) %>%
+  sum(na.rm = TRUE)
+
+# total number of cigarette butts collected by Gwynnda in June of 2022
+gwyn_2022_6_cigarette_butts <- trash_wheel %>%
+  filter(wheel_name == "gwynnda trash wheel", month == "June", year == 2022) %>%
+  pull(cigarette_butts) %>%
+  sum(na.rm = TRUE)
+
+prof_total_weight
+gwyn_2022_6_cigarette_butts
+```
+
+As the code result shown, the total weight of trash collected by Professor Trash Wheel is 246.74 tons, and the total number of cigarette butts collected by Gwynnda in June of 2022 is 18120.
+
 
 # Problem 3
