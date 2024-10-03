@@ -268,8 +268,29 @@ Afterward, only the tibbles generated from lines 219 and 223 remained non-empty.
 
 Regarding data correctness, it is likely that the data entry was done with minimal caution, necessitating a significant amount of cleaning before further analysis to avoid bias. As for data completeness, the `sum(is.na())` function helped identify missing values: `bakers.csv` had no missing values, suggesting good completeness; `bakes.csv` had only 2 missing values, which is acceptable; whereas `results.csv` had a considerable number of missing values (866), raising concerns about its completeness.
 
-We will now proceed to merge the datasets into a single, final dataset and organize it by merge datasets on common keys, and rearranging variables. As we mentioned previously, since some bakers are missing bake-related information but are present in the competition (as seen with the replicated entries), I would keep these rows for completeness. However, we should flag missing data or fill them with appropriate NA values to avoid skewing analysis in future if needed.
+We will now proceed to merge the datasets into a single, final dataset and organize it by merge datasets on common keys, and rearranging variables. As we mentioned previously, since some bakers are missing bake-related information but are present in the competition (as seen with the replicated entries), I would keep these rows for completeness. However, in the future, if needed, we should flag missing data or fill them with appropriate NA values to avoid bias in analysis.
 
 ```{r 3.3 merge and organize}
+# merging datasets on 'first_name' and 'series' keys
+final_data <- bakers |> 
+  left_join(bakes, by = c("first_name" = "baker", "series")) |> 
+  left_join(results, by = c("first_name" = "baker", "series", "episode"))
 
+# rearrange columns
+final_data <- final_data %>%
+  select(
+    first_name, last_name, baker_age, baker_occupation, hometown,  # baker info
+    series, episode, signature_bake, show_stopper,                 # bake info
+    technical, result                                              # results
+  )
+
+# sorting by 'series' and 'episode'
+final_datas <- final_data %>%
+  arrange(series, episode)
+
+# display the final dataset
+print(final_data)
+
+# save the final dataset to a CSV file
+write_csv(final_data, "data/gbb_datasets/final_bake_data.csv")
 ```
