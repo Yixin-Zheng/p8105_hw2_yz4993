@@ -166,3 +166,53 @@ As the code result shown, the total weight of trash collected by Professor Trash
 
 
 # Problem 3
+```{r 3.1 data import and cleaning and wrangling}
+bakers = 
+  read_csv(
+    "data/gbb_datasets/bakers.csv"    # specify the correct path
+  ) |> 
+  janitor::clean_names() |>           # clean column names to snake_case
+  filter(!is.na(baker_name)) |>       # filter "baker_name" column to omit NA
+  separate(
+    baker_name, 
+    into = c("first_name", "last_name"), 
+    sep = " ", 
+    extra = "merge")                  # split first and last names
+
+bakes = 
+  read_csv(
+    "data/gbb_datasets/bakes.csv",    # specify the correct path
+  ) |> 
+  janitor::clean_names() |>            # clean column names to snake_case
+  filter(!is.na(baker))                # filter "baker" column to omit NA
+
+results = 
+  read_csv(
+    "data/gbb_datasets/results.csv",    # specify the correct path
+    skip = 2) |>                        # skip the first 2 rows (notes)
+  janitor::clean_names() |>             # clean column names to snake_case
+  filter(!is.na(baker))                 # filter rows "baker" column to omit NA
+```
+
+
+```{r 3.2 completeness and correctness}
+# checking for missing values
+sum(is.na(bakers))
+sum(is.na(bakes))
+sum(is.na(results))
+
+colnames(bakers)
+colnames(bakes)
+colnames(results)
+
+# check for bakers in bakes.csv that do not exist in bakers.csv based on first name
+anti_join(bakes, bakers, by = c("baker" = "first_name"))
+
+# check for bakers in bakes.csv that do not exist in results.csv
+anti_join(bakes, results, by = c("baker" = "baker"))
+
+# check for bakers in bakers.csv that do not exist in results.csv based on first name
+anti_join(bakers, results, by = c("first_name" = "baker"))
+
+```
+
