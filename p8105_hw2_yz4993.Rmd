@@ -203,28 +203,58 @@ results =
 
 
 ```{r 3.2 completeness and correctness}
-# checking for missing values
-sum(is.na(bakers))
-sum(is.na(bakes))
-sum(is.na(results))
-
 #review column names
 colnames(bakers)
 colnames(bakes)
 colnames(results)
 
 # check for bakers in bakes.csv that do not exist in bakers.csv based on first name
-anti_join(bakes, bakers, by = c("baker" = "first_name"))
+aj_bebr = anti_join(bakes, bakers, by = c("baker" = "first_name"))
 # check for bakers in bakers.csv that do not exist in bakes.csv based on first name
-anti_join(bakers, bakes, by = c("first_name" = "baker"))
+aj_brbe = anti_join(bakers, bakes, by = c("first_name" = "baker"))
 # check for bakers in bakes.csv that do not exist in results.csv
-anti_join(bakes, results, by = c("baker" = "baker"))
+aj_ber = anti_join(bakes, results, by = c("baker" = "baker"))
 # check for bakers in results.csv that do not exist in bakes.csv
-anti_join(results, bakes, by = c("baker" = "baker"))
+aj_rbe = anti_join(results, bakes, by = c("baker" = "baker"))
 # check for bakers in bakers.csv that do not exist in results.csv based on first name
-anti_join(bakers, results, by = c("first_name" = "baker"))
+aj_brr = anti_join(bakers, results, by = c("first_name" = "baker"))
 # check for bakers in results.csv that do not exist in bakers.csv based on first name
-anti_join(results, bakers, by = c("baker" = "first_name"))
+aj_rbr = anti_join(results, bakers, by = c("baker" = "first_name"))
 
+
+# check for replicated first_name in the aj_brbe (bakers vs bakes)
+replicated_brbe <- aj_brbe %>%
+  group_by(first_name) %>%
+  filter(n() > 1)
+
+# check for replicated baker name in the aj_rbe (results vs bakes)
+replicated_rbe <- aj_rbe %>%
+  group_by(baker) %>%
+  filter(n() > 1)
+
+# combine the replicated entries from aj_brbe
+combined_brbe <- aj_brbe %>%
+  group_by(first_name) %>%
+  summarize(
+    last_name = paste(unique(last_name), collapse = "/"),
+    series = paste(unique(series), collapse = ", "),
+    baker_age = mean(baker_age, na.rm = TRUE)
+  )
+
+# combine the replicated entries from aj_rbe
+combined_rbe <- aj_rbe %>%
+  group_by(baker) %>%
+  summarize(
+    episode = paste(unique(episode), collapse = ", "),
+    result = paste(unique(result), collapse = "/")
+  )
+
+# Check if the names in combined_brbe and combined_rbe match
+if (all(combined_brbe$first_name %in% combined_rbe$baker) &&
+    all(combined_rbe$first_name == combined_rbe$baker)) {
+  print("All names match.")
+} else {
+  print("Some names differ.")
+}
 ```
 
